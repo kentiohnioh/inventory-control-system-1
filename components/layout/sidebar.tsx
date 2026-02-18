@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { ThemeToggle } from '@/components/theme-toggle'
 import {
   Package,
   Truck,
@@ -124,13 +125,16 @@ export default function Sidebar({ user }: SidebarProps) {
           })}
         </nav>
 
-        {/* User Info & Logout */}
+                {/* User Info with Theme Toggle & Logout */}
         <div className="p-4 border-t border-border space-y-2">
-          <div className="text-sm">
-            <p className="font-medium text-foreground">{user?.email || 'User'}</p>
-            <p className="text-xs text-muted-foreground capitalize">
-              {user?.role}
-            </p>
+          <div className="flex items-center justify-between">
+            <div className="text-sm">
+              <p className="font-medium text-foreground">{user?.email || 'User'}</p>
+              <p className="text-xs text-muted-foreground capitalize">
+                {user?.role}
+              </p>
+            </div>
+            <ThemeToggle />
           </div>
           <Button 
             onClick={handleLogout}
