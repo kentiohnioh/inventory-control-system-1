@@ -74,6 +74,252 @@
   --sidebar-ring: oklch(0.439 0 0);
 }
 
+/* iOS 26 Liquid Glass UI - Light Blue Edition */
+.glass {
+  --background: oklch(0.98 0.02 220);
+  --foreground: oklch(0.2 0.04 240);
+  --card: oklch(1 0 0 / 0.7);
+  --card-foreground: oklch(0.2 0.04 240);
+  --popover: oklch(1 0 0 / 0.7);
+  --popover-foreground: oklch(0.2 0.04 240);
+  --primary: oklch(0.7 0.15 220);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.95 0.02 220 / 0.5);
+  --secondary-foreground: oklch(0.3 0.05 240);
+  --muted: oklch(0.96 0.01 220 / 0.5);
+  --muted-foreground: oklch(0.5 0.03 240);
+  --accent: oklch(0.9 0.04 220 / 0.3);
+  --accent-foreground: oklch(0.3 0.06 240);
+  --destructive: oklch(0.6 0.2 30);
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(0.9 0.02 220 / 0.3);
+  --input: oklch(0.95 0.02 220 / 0.5);
+  --ring: oklch(0.7 0.15 220);
+  
+  /* Premium glass background - light blue tones */
+  background: radial-gradient(
+    circle at 100% 0%,
+    oklch(0.95 0.04 240 / 0.3) 0%,
+    oklch(0.98 0.02 220 / 0.5) 50%,
+    oklch(0.97 0.03 230 / 0.4) 100%
+  );
+}
+
+/* Main content area - deep glass */
+.glass .flex-1 {
+  background: oklch(1 0 0 / 0.2);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Cards - like the track artist cards */
+.glass .bg-card,
+.glass .card {
+  background: oklch(1 0 0 / 0.4) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+  border: 1px solid oklch(1 1 1 / 0.2) !important;
+  border-bottom: 1px solid oklch(1 1 1 / 0.3) !important;
+  box-shadow: 
+    0 10px 30px -10px oklch(0 0 0 / 0.1),
+    inset 0 1px 1px oklch(1 1 1 / 0.6) !important;
+  border-radius: 24px !important;
+}
+
+/* Sidebar - frosted glass */
+.glass aside {
+  background: oklch(1 0 0 / 0.3) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border-right: 1px solid oklch(1 1 1 / 0.2) !important;
+  box-shadow: none !important;
+}
+
+/* Sidebar navigation items */
+.glass aside button {
+  background: transparent !important;
+  border: none !important;
+  backdrop-filter: none !important;
+  color: oklch(0.2 0.04 240) !important;
+  font-weight: 500 !important;
+  margin: 2px 8px !important;
+  border-radius: 14px !important;
+}
+
+.glass aside button:hover {
+  background: oklch(1 0 0 / 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.glass aside button[class*="default"] {
+  background: oklch(0.7 0.15 220 / 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid oklch(1 1 1 / 0.2) !important;
+  color: oklch(0.6 0.15 220) !important;
+}
+
+/* Headers - like track artist/title - RESTRICTED TO GLASS CLASS ONLY */
+.glass h1, 
+.glass h2, 
+.glass h3 {
+  color: oklch(0.3 0.08 230);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 2px oklch(1 1 1 / 0.5);
+}
+
+.glass h1 {
+  font-size: 28px;
+  background: linear-gradient(135deg, oklch(0.3 0.1 220), oklch(0.5 0.15 210));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Stats cards - like detail cards */
+.glass .grid .card {
+  background: oklch(1 0 0 / 0.3) !important;
+  border-radius: 28px !important;
+  padding: 24px !important;
+  border: 1px solid oklch(1 1 1 / 0.2) !important;
+}
+
+.glass .grid .card .text-2xl {
+  color: oklch(0.6 0.15 220);
+  font-weight: 600 !important;
+  font-size: 32px !important;
+}
+
+/* Input fields - like search bars */
+.glass input,
+.glass select,
+.glass textarea {
+  background: oklch(1 0 0 / 0.2) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid oklch(1 1 1 / 0.2) !important;
+  border-radius: 20px !important;
+  padding: 12px 18px !important;
+  color: oklch(0.2 0.04 240) !important;
+  font-weight: 500 !important;
+}
+
+.glass input::placeholder {
+  color: oklch(0.5 0.03 240 / 0.6);
+}
+
+/* Buttons */
+.glass button:not(.theme-toggle) {
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  transition: all 0.2s ease !important;
+  border: 1px solid oklch(1 1 1 / 0.2) !important;
+  background: oklch(1 0 0 / 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+  color: oklch(0.2 0.06 240) !important;
+}
+
+.glass button:not(.theme-toggle):hover {
+  background: oklch(1 0 0 / 0.3) !important;
+  transform: scale(0.98);
+}
+
+/* Primary button - light blue */
+.glass button[class*="default"] {
+  background: oklch(0.7 0.15 220 / 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  border: 1px solid oklch(1 1 1 / 0.3) !important;
+  color: oklch(1 0 0) !important;
+}
+
+/* Table styles - like track lists */
+.glass table {
+  background: transparent !important;
+}
+
+.glass thead tr {
+  background: oklch(1 0 0 / 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 20px !important;
+}
+
+.glass thead th {
+  color: oklch(0.3 0.08 230);
+  font-weight: 600;
+  padding: 16px !important;
+}
+
+.glass tbody tr {
+  background: oklch(1 0 0 / 0.1) !important;
+  backdrop-filter: blur(5px) !important;
+  border-bottom: 1px solid oklch(1 1 1 / 0.1) !important;
+}
+
+.glass tbody tr:hover {
+  background: oklch(1 0 0 / 0.2) !important;
+}
+
+.glass tbody td {
+  padding: 14px 16px !important;
+  color: oklch(0.2 0.04 240);
+}
+
+/* Borders */
+.glass .border-border {
+  border-color: oklch(1 1 1 / 0.15) !important;
+}
+
+/* Theme toggle button */
+.glass .theme-toggle {
+  background: oklch(0.7 0.15 220 / 0.2) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid oklch(1 1 1 / 0.2) !important;
+  border-radius: 30px !important;
+  padding: 8px !important;
+}
+
+.glass .theme-toggle:hover {
+  background: oklch(0.7 0.15 220 / 0.3) !important;
+}
+
+/* Stats numbers - like detail text */
+.glass .text-2xl.font-bold {
+  color: oklch(0.6 0.15 220);
+  font-weight: 600 !important;
+  text-shadow: 0 2px 5px oklch(1 1 1 / 0.5);
+}
+
+/* Welcome text - like artist name */
+.glass .text-muted-foreground {
+  color: oklch(0.5 0.08 220 / 0.9);
+  font-weight: 500;
+}
+
+/* Card headers - like track title */
+.glass .card h3,
+.glass .card .font-semibold {
+  color: oklch(0.3 0.1 230);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Soft shadows and depth */
+.glass .card {
+  box-shadow: 
+    0 20px 40px -15px oklch(0 0 0 / 0.1),
+    inset 0 1px 2px oklch(1 1 1 / 0.5) !important;
+}
+
+/* Remove harsh shadows */
+.glass * {
+  box-shadow: none !important;
+}
+
+.glass .card,
+.glass button,
+.glass input {
+  box-shadow: 0 10px 30px -10px oklch(0 0 0 / 0.05) !important;
+}
+
 @theme inline {
   --font-sans: 'Geist', 'Geist Fallback'; /* User's font config preserved */
   --font-mono: 'Geist Mono', 'Geist Mono Fallback'; /* User's font config preserved */
@@ -122,4 +368,15 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Login page protection - force white text */
+body:has(.min-h-screen.flex.items-center.justify-center) h1 {
+  color: white !important;
+  background: none !important;
+  -webkit-text-fill-color: white !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+  text-shadow: none !important;
+  background-image: none !important;
 }
