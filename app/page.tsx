@@ -19,7 +19,7 @@ export default function LoginPage() {
 
     // Simple hardcoded credentials
     const validEmails = ['admin@gmail.com', 'manager@gmail.com', 'stock@gmail.com', 'viewer@gmail.com']
-    
+
     if (validEmails.includes(email) && password === 'rupp2025') {
       const role = email.split('@')[0]
       localStorage.setItem('user', JSON.stringify({ email, role }))
