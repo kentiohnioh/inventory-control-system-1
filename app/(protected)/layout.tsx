@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Sidebar from '@/components/layout/sidebar'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function ProtectedLayout({
   children,
@@ -29,9 +30,16 @@ export default function ProtectedLayout({
   return (
     <div className="flex h-screen bg-background">
       <Sidebar user={user} />
-      <main className="flex-1 overflow-auto">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Top header with theme toggle */}
+        <header className="h-16 border-b border-border bg-card/50 backdrop-blur-sm flex items-center justify-end px-6">
+          <ThemeToggle />
+        </header>
+        {/* Main content */}
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }
