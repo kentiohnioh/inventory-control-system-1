@@ -1,0 +1,270 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts'
+import { query } from '@/lib/db'
+
+export default async function ReportsPage() {
+  let stockData = []
+  let stockInData = []
+  let stockOutData = []
+
+  try {
+    // Get current stock
+    const result = await query('SELECT * FROM current_stock')
+    stockData = result.rows
+  } catch (error) {
+    console.error('[v0] Error fetching stock data:', error)
+  }
+
+  try {
+    // Get stock in data
+    const result = await query(`
+      SELECT quantity, purchase_price FROM stock_in
+      ORDER BY date DESC LIMIT 100
+    `)
+    stockInData = result.rows
+  } catch (error) {
+    console.error('[v0] Error fetching stock in data:', error)
+  }
+
+  try {
+    // Get stock out data
+    const result = await query(`
+      SELECT quantity, selling_price FROM stock_out
+      ORDER BY date DESC LIMIT 100
+    `)
+    stockOutData = result.rows
+  } catch (error) {
+    console.error('[v0] Error fetching stock out data:', error)
+  }
+
+  // Calculate metrics
+  const totalProducts = stockData?.length || 0
+  const lowStockCount = stockData?.filter(
+    (item: any) => item.current_quantity <= item.min_stock_level
+  ).length
+
+  const totalValue = stockData?.reduce((sum: number, item: any) => {
+    return sum + item.current_quantity * item.default_purchase_price
+  }, 0)
+
+  const totalRevenue = stockOutData?.reduce((sum: number, item: any) => {
+    return sum + item.quantity * item.selling_price
+  }, 0)
+
+  const totalCost = stockInData?.reduce((sum: number, item: any) => {
+    return sum + item.quantity * item.purchase_price
+  }, 0)
+
+  // Top products by value
+  const topProducts = (stockData || [])
+    .sort(
+      (a: any, b: any) =>
+        b.current_quantity * b.default_selling_price -
+        a.current_quantity * a.default_selling_price
+    )
+    .slice(0, 5)
+    .map((item: any) => ({
+      name: item.name,
+      value: (item.current_quantity * item.default_selling_price).toFixed(2),
+    }))
+
+  // Category distribution
+  const categoryMap: any = {}
+  stockData?.forEach((item: any) => {
+    if (!categoryMap[item.name]) {
+      categoryMap[item.name] = { name: item.name, quantity: 0 }
+    }
+    categoryMap[item.name].quantity += item.current_quantity
+  })
+
+  const categoryData = Object.values(categoryMap).slice(0, 6)
+
+  const COLORS = [
+    '#3b82f6',
+    '#10b981',
+    '#f59e0b',
+    '#ef4444',
+    '#8b5cf6',
+    '#ec4899',
+  ]
+
+  return (
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-foreground">Reports</h1>
+        <p className="text-muted-foreground">
+          Inventory analytics and insights
+        </p>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Products
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalProducts}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Inventory Value
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${totalValue?.toFixed(2) || '0'}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Revenue
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${totalRevenue?.toFixed(2) || '0'}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Low Stock Items
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-destructive">
+              {lowStockCount}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Products */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top 5 Products by Value</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {topProducts.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={topProducts}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                    interval={0}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <YAxis tick={{ fontSize: 12 }} />
+                  <Tooltip
+                    formatter={(value: any) => `$${value}`}
+                    cursor={{ fill: 'rgba(0,0,0,0.1)' }}
+                  />
+                  <Bar dataKey="value" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-muted-foreground">
+                No data available
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Inventory Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Inventory Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {categoryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, quantity }) => `${name}: ${quantity}`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="quantity"
+                  >
+                    {categoryData.map((_: any, index: number) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-64 flex items-center justify-center text-muted-foreground">
+                No data available
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Summary Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Financial Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center p-3 bg-muted rounded">
+              <span className="font-medium">Total Inventory Cost</span>
+              <span className="text-lg font-bold">
+                ${totalCost?.toFixed(2) || '0'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-muted rounded">
+              <span className="font-medium">Total Revenue from Sales</span>
+              <span className="text-lg font-bold text-green-600">
+                ${totalRevenue?.toFixed(2) || '0'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center p-3 bg-muted rounded">
+              <span className="font-medium">Gross Profit</span>
+              <span className="text-lg font-bold">
+                ${((totalRevenue || 0) - (totalCost || 0)).toFixed(2)}
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
