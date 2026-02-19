@@ -9,8 +9,9 @@ export function Providers({ children }: { children: ReactNode }) {
       attribute="class"
       defaultTheme="light"
       enableSystem={false}
-      themes={['light', 'dark', 'glass']}
+      themes={['light', 'dark']}
       disableTransitionOnChange
+      storageKey="theme"
     >
       {children}
     </NextThemesProvider>
