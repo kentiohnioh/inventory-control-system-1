@@ -123,3 +123,14 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Login page protection - force white text */
+body:has(.min-h-screen.flex.items-center.justify-center) h1 {
+  color: white !important;
+  background: none !important;
+  -webkit-text-fill-color: white !important;
+  background-clip: unset !important;
+  -webkit-background-clip: unset !important;
+  text-shadow: none !important;
+  background-image: none !important;
+}
