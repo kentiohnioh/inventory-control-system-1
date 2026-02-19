@@ -98,10 +98,13 @@ export default function Sidebar({ user }: SidebarProps) {
         className={`${isOpen ? 'translate-x-0' : '-translate-x-full'
           } md:translate-x-0 transition-transform duration-300 fixed md:static inset-y-0 left-0 w-64 bg-card border-r border-border flex flex-col z-40`}
       >
-        {/* Header */}
-        <div className="p-6 border-b border-border">
-          <h1 className="text-xl font-bold text-foreground">ICS</h1>
-          <p className="text-sm text-muted-foreground">Inventory Control</p>
+                               {/* Header with Logo */}
+        <div className="p-4 border-b border-border flex justify-center items-center h-24">
+          <img 
+            src="/ICS Logo.png" 
+            alt="ICS Logo" 
+            className="h-full w-auto object-contain"
+          />
         </div>
 
         {/* Navigation */}
