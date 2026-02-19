@@ -95,9 +95,8 @@ export default function Sidebar({ user }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 transition-transform duration-300 fixed md:static inset-y-0 left-0 w-64 bg-card border-r border-border flex flex-col z-40`}
+        className={`${isOpen ? 'translate-x-0' : '-translate-x-full'
+          } md:translate-x-0 transition-transform duration-300 fixed md:static inset-y-0 left-0 w-64 bg-card border-r border-border flex flex-col z-40`}
       >
         {/* Header */}
         <div className="p-6 border-b border-border">
@@ -125,7 +124,7 @@ export default function Sidebar({ user }: SidebarProps) {
           })}
         </nav>
 
-                {/* User Info with Theme Toggle & Logout */}
+        {/* User Info with Theme Toggle & Logout */}
         <div className="p-4 border-t border-border space-y-2">
           <div className="flex items-center justify-between">
             <div className="text-sm">
@@ -136,9 +135,9 @@ export default function Sidebar({ user }: SidebarProps) {
             </div>
             <ThemeToggle />
           </div>
-          <Button 
+          <Button
             onClick={handleLogout}
-            variant="outline" 
+            variant="outline"
             className="w-full justify-start text-destructive"
           >
             <LogOut className="h-4 w-4 mr-2" />
