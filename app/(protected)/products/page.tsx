@@ -1,37 +1,60 @@
+'use client'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { Plus, Edit2, Trash2 } from 'lucide-react'
-import ProductsList from '@/components/products/products-list'
 import { query } from '@/lib/db'
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
-export default async function ProductsPage() {
-  let products = []
-  let stockMap: Record<string, any> = {}
+export default function ProductsPage() {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+  const [products, setProducts] = useState([])
+  const [stockMap, setStockMap] = useState({})
+  const [loading, setLoading] = useState(true)
 
-  try {
-    // Get all products with categories
-    const result = await query(`
-      SELECT p.id, p.name, p.category_id, p.barcode, p.description,
-             p.min_stock_level, p.default_purchase_price, p.default_selling_price,
-             p.unit, c.name as category_name
-      FROM products p
-      LEFT JOIN categories c ON p.category_id = c.id
-      ORDER BY p.name ASC
-    `)
-    products = result.rows
-  } catch (error) {
-    console.error('[v0] Error fetching products:', error)
-  }
+  useEffect(() => {
+    // Get user from localStorage
+    const storedUser = localStorage.getItem('user')
+    if (storedUser) {
+      setUser(JSON.parse(storedUser))
+    } else {
+      router.push('/')
+    }
+  }, [router])
 
-  try {
-    // Get current stock for each product
-    const result = await query('SELECT id, current_quantity FROM current_stock')
-    stockMap = Object.fromEntries(
-      result.rows.map((item: any) => [item.id, item.current_quantity])
-    )
-  } catch (error) {
-    console.error('[v0] Error fetching stock:', error)
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch products
+        const productsRes = await fetch('/api/products')
+        const productsData = await productsRes.json()
+        setProducts(productsData)
+
+        // Fetch stock data
+        const stockRes = await fetch('/api/current-stock')
+        const stockData = await stockRes.json()
+        setStockMap(stockData)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (user) {
+      fetchData()
+    }
+  }, [user])
+
+  // Map the role for display
+  const displayRole = user?.role === 'stock' ? 'Stock Controller' : user?.role
+  const isStockController = user?.role === 'stock' || user?.role === 'stock_controller'
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-screen">Loading...</div>
   }
 
   return (
@@ -44,12 +67,15 @@ export default async function ProductsPage() {
             Manage your product inventory
           </p>
         </div>
-        <Link href="/products/create">
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            New Product
-          </Button>
-        </Link>
+        {/* Hide New Product button for stock controllers */}
+        {!isStockController && (
+          <Link href="/products/create">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              New Product
+            </Button>
+          </Link>
+        )}
       </div>
 
       {/* Products Table */}
@@ -82,18 +108,18 @@ export default async function ProductsPage() {
                     <tr key={product.id} className="border-b hover:bg-muted">
                       <td className="py-3 px-4">{product.name}</td>
                       <td className="py-3 px-4">
-                        {(product.categories as any)?.name || '-'}
+                        {product.category_name || '-'}
                       </td>
                       <td className="py-3 px-4">
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            (stockMap[product.id] || 0) <=
+                            (stockMap[product.id as keyof typeof stockMap] || 0) <=
                             product.min_stock_level
                               ? 'bg-destructive/10 text-destructive'
                               : 'bg-green-100 text-green-800'
                           }`}
                         >
-                          {stockMap[product.id] || 0} {product.unit}
+                          {stockMap[product.id as keyof typeof stockMap] || 0} {product.unit}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right">
@@ -104,14 +130,23 @@ export default async function ProductsPage() {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <div className="flex justify-center gap-2">
-                          <Link href={`/products/${product.id}/edit`}>
-                            <Button variant="outline" size="sm">
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                          </Link>
-                          <Button variant="outline" size="sm" className="text-destructive bg-transparent">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {/* Only show Edit/Delete for non-stock controllers */}
+                          {!isStockController ? (
+                            <>
+                              <Link href={`/products/${product.id}/edit`}>
+                                <Button variant="outline" size="sm">
+                                  <Edit2 className="h-4 w-4" />
+                                </Button>
+                              </Link>
+                              <Button variant="outline" size="sm" className="text-destructive bg-transparent">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          ) : (
+                            <span className="text-xs text-muted-foreground px-2">
+                              View Only
+                            </span>
+                          )}
                         </div>
                       </td>
                     </tr>

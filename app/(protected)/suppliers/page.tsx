@@ -1,13 +1,11 @@
 'use client'
 
 import React from "react"
-
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Plus, Edit2, Trash2 } from 'lucide-react'
-import { manageSupplie } from '@/app/actions/suppliers'
 
 interface SupplierForm {
   name: string
@@ -33,18 +31,19 @@ export default function SuppliersPage() {
   })
 
   useEffect(() => {
-    const fetchSuppliers = async () => {
-      try {
-        const res = await fetch('/api/suppliers')
-        const data = await res.json()
-        setSuppliers(data)
-      } catch (err) {
-        console.error('[v0] Error fetching suppliers:', err)
-      }
-    }
-
     fetchSuppliers()
   }, [])
+
+  const fetchSuppliers = async () => {
+    try {
+      const res = await fetch('/api/suppliers')
+      if (!res.ok) throw new Error('Failed to fetch suppliers')
+      const data = await res.json()
+      setSuppliers(data)
+    } catch (err) {
+      console.error('[v0] Error fetching suppliers:', err)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -52,27 +51,44 @@ export default function SuppliersPage() {
     setLoading(true)
 
     try {
-      const result = await manageSupplie(formData, 'create')
-      if (result?.error) {
-        setError(result.error)
-      } else {
-        setSuccess('Supplier created successfully!')
-        // Refresh suppliers
-        const res = await fetch('/api/suppliers')
-        const data = await res.json()
-        setSuppliers(data)
-        setFormData({
-          name: '',
-          contact: '',
-          email: '',
-          address: '',
-          notes: '',
-        })
-        setShowForm(false)
-        setTimeout(() => setSuccess(''), 3000)
+      const response = await fetch('/api/suppliers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      // Try to parse the response as JSON
+      let responseData
+      try {
+        responseData = await response.json()
+      } catch {
+        // If parsing fails, create a generic error
+        responseData = { error: `Server returned ${response.status}: ${response.statusText}` }
       }
-    } catch (err) {
-      setError('An error occurred. Please try again.')
+
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to create supplier')
+      }
+
+      setSuccess('Supplier created successfully!')
+      
+      // Refresh suppliers list
+      await fetchSuppliers()
+      
+      // Reset form
+      setFormData({
+        name: '',
+        contact: '',
+        email: '',
+        address: '',
+        notes: '',
+      })
+      setShowForm(false)
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err: any) {
+      setError(err.message || 'An error occurred. Please try again.')
       console.error('[v0] Error:', err)
     } finally {
       setLoading(false)
