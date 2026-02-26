@@ -21,6 +21,7 @@ export default function SuppliersPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [editingId, setEditingId] = useState<number | null>(null)
 
   const [formData, setFormData] = useState<SupplierForm>({
     name: '',
@@ -45,39 +46,76 @@ export default function SuppliersPage() {
     }
   }
 
+  const handleEdit = (supplier: any) => {
+    setEditingId(supplier.id)
+    setFormData({
+      name: supplier.name,
+      contact: supplier.contact || '',
+      email: supplier.email || '',
+      address: supplier.address || '',
+      notes: supplier.notes || '',
+    })
+    setShowForm(true)
+  }
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this supplier?')) {
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/suppliers/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to delete supplier')
+      }
+
+      await fetchSuppliers()
+      setSuccess('Supplier deleted successfully!')
+      setTimeout(() => setSuccess(''), 3000)
+    } catch (err: any) {
+      console.error('Delete error:', err)
+      setError(err.message || 'Failed to delete supplier')
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     try {
-      const response = await fetch('/api/suppliers', {
-        method: 'POST',
+      const url = editingId ? `/api/suppliers/${editingId}` : '/api/suppliers'
+      const method = editingId ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method: method,
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
       })
 
-      // Try to parse the response as JSON
+      const responseText = await response.text()
       let responseData
       try {
-        responseData = await response.json()
-      } catch {
-        // If parsing fails, create a generic error
-        responseData = { error: `Server returned ${response.status}: ${response.statusText}` }
+        responseData = responseText ? JSON.parse(responseText) : {}
+      } catch (e) {
+        console.error('JSON parse error:', e)
+        responseData = { error: 'Invalid JSON response from server' }
       }
 
       if (!response.ok) {
-        throw new Error(responseData.error || 'Failed to create supplier')
+        throw new Error(responseData.error || `Server error: ${response.status}`)
       }
 
-      setSuccess('Supplier created successfully!')
-      
-      // Refresh suppliers list
+      setSuccess(editingId ? 'Supplier updated successfully!' : 'Supplier created successfully!')
+
       await fetchSuppliers()
-      
-      // Reset form
+
       setFormData({
         name: '',
         contact: '',
@@ -86,13 +124,27 @@ export default function SuppliersPage() {
         notes: '',
       })
       setShowForm(false)
+      setEditingId(null)
       setTimeout(() => setSuccess(''), 3000)
     } catch (err: any) {
+      console.error('Submission error:', err)
       setError(err.message || 'An error occurred. Please try again.')
-      console.error('[v0] Error:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleCancel = () => {
+    setShowForm(false)
+    setEditingId(null)
+    setFormData({
+      name: '',
+      contact: '',
+      email: '',
+      address: '',
+      notes: '',
+    })
+    setError('')
   }
 
   return (
@@ -112,7 +164,7 @@ export default function SuppliersPage() {
       {showForm && (
         <Card>
           <CardHeader>
-            <CardTitle>Add Supplier</CardTitle>
+            <CardTitle>{editingId ? 'Edit Supplier' : 'Add Supplier'}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
@@ -209,12 +261,12 @@ export default function SuppliersPage() {
 
               <div className="flex gap-2">
                 <Button type="submit" disabled={loading}>
-                  {loading ? 'Creating...' : 'Create Supplier'}
+                  {loading ? 'Saving...' : (editingId ? 'Update Supplier' : 'Create Supplier')}
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowForm(false)}
+                  onClick={handleCancel}
                   disabled={loading}
                 >
                   Cancel
@@ -237,16 +289,11 @@ export default function SuppliersPage() {
                 <thead className="border-b">
                   <tr>
                     <th className="text-left py-3 px-4 font-semibold">Name</th>
-                    <th className="text-left py-3 px-4 font-semibold">
-                      Contact
-                    </th>
+                    <th className="text-left py-3 px-4 font-semibold">Contact</th>
                     <th className="text-left py-3 px-4 font-semibold">Email</th>
-                    <th className="text-left py-3 px-4 font-semibold">
-                      Address
-                    </th>
-                    <th className="text-center py-3 px-4 font-semibold">
-                      Actions
-                    </th>
+                    <th className="text-left py-3 px-4 font-semibold">Address</th>
+                    <th className="text-left py-3 px-4 font-semibold">Notes</th>
+                    <th className="text-center py-3 px-4 font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -256,15 +303,21 @@ export default function SuppliersPage() {
                       <td className="py-3 px-4">{supplier.contact || '-'}</td>
                       <td className="py-3 px-4">{supplier.email || '-'}</td>
                       <td className="py-3 px-4">{supplier.address || '-'}</td>
+                      <td className="py-3 px-4">{supplier.notes || '-'}</td>
                       <td className="py-3 px-4 text-center">
                         <div className="flex justify-center gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(supplier)}
+                          >
                             <Edit2 className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
                             className="text-destructive bg-transparent"
+                            onClick={() => handleDelete(supplier.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
