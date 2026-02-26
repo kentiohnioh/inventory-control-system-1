@@ -48,7 +48,7 @@ export default function Sidebar({ user }: SidebarProps) {
       href: '/products',
       label: 'Products',
       icon: Package,
-      roles: ['admin', 'manager'],
+      roles: ['admin', 'manager', 'stock_controller'],
     },
     {
       href: '/suppliers',
@@ -76,9 +76,26 @@ export default function Sidebar({ user }: SidebarProps) {
     },
   ]
 
+  // Map the role from login to the role expected in menuItems
+  const getMappedRole = (role: string) => {
+    const roleMap: Record<string, string> = {
+      'admin': 'admin',
+      'manager': 'manager',
+      'stock': 'stock_controller', // Map 'stock' to 'stock_controller'
+      'viewer': 'viewer'
+    }
+    return roleMap[role] || role
+  }
+
   const visibleItems = user
-    ? menuItems.filter((item) => item.roles.includes(user.role))
+    ? menuItems.filter((item) => {
+        const mappedRole = getMappedRole(user.role)
+        return item.roles.includes(mappedRole as any)
+      })
     : []
+
+  // Format role for display
+  const displayRole = user?.role === 'stock' ? 'Stock Controller' : user?.role
 
   return (
     <>
@@ -98,7 +115,7 @@ export default function Sidebar({ user }: SidebarProps) {
         className={`${isOpen ? 'translate-x-0' : '-translate-x-full'
           } md:translate-x-0 transition-transform duration-300 fixed md:static inset-y-0 left-0 w-64 bg-card border-r border-border flex flex-col z-40`}
       >
-                               {/* Header with Logo */}
+        {/* Header with Logo */}
         <div className="p-4 border-b border-border flex justify-center items-center h-24">
           <img 
             src="/ICS Logo.png" 
@@ -133,7 +150,7 @@ export default function Sidebar({ user }: SidebarProps) {
             <div className="text-sm">
               <p className="font-medium text-foreground">{user?.email || 'User'}</p>
               <p className="text-xs text-muted-foreground capitalize">
-                {user?.role}
+                {displayRole}
               </p>
             </div>
             <ThemeToggle />
