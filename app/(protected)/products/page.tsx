@@ -53,6 +53,25 @@ export default function ProductsPage() {
   const displayRole = user?.role === 'stock' ? 'Stock Controller' : user?.role
   const isStockController = user?.role === 'stock' || user?.role === 'stock_controller'
 
+  // Safe number formatting function
+  const formatPrice = (price: any): string => {
+    if (price === null || price === undefined) return '0.00'
+    
+    // If it's already a number
+    if (typeof price === 'number') {
+      return price.toFixed(2)
+    }
+    
+    // If it's a string, try to parse it
+    if (typeof price === 'string') {
+      const parsed = parseFloat(price)
+      return isNaN(parsed) ? '0.00' : parsed.toFixed(2)
+    }
+    
+    // Fallback
+    return '0.00'
+  }
+
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>
   }
@@ -106,7 +125,7 @@ export default function ProductsPage() {
                 <tbody>
                   {(products as any[]).map((product) => (
                     <tr key={product.id} className="border-b hover:bg-muted">
-                      <td className="py-3 px-4">{product.name}</td>
+                      <td className="py-3 px-4">{product.name || '-'}</td>
                       <td className="py-3 px-4">
                         {product.category_name || '-'}
                       </td>
@@ -114,19 +133,19 @@ export default function ProductsPage() {
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${
                             (stockMap[product.id as keyof typeof stockMap] || 0) <=
-                            product.min_stock_level
+                            (product.min_stock_level || 0)
                               ? 'bg-destructive/10 text-destructive'
                               : 'bg-green-100 text-green-800'
                           }`}
                         >
-                          {stockMap[product.id as keyof typeof stockMap] || 0} {product.unit}
+                          {stockMap[product.id as keyof typeof stockMap] || 0} {product.unit || 'pcs'}
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right">
-                        ${product.default_purchase_price?.toFixed(2)}
+                        ${formatPrice(product.default_purchase_price)}
                       </td>
                       <td className="py-3 px-4 text-right">
-                        ${product.default_selling_price?.toFixed(2)}
+                        ${formatPrice(product.default_selling_price)}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <div className="flex justify-center gap-2">
