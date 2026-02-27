@@ -56,18 +56,18 @@ export default function ProductsPage() {
   // Safe number formatting function
   const formatPrice = (price: any): string => {
     if (price === null || price === undefined) return '0.00'
-    
+
     // If it's already a number
     if (typeof price === 'number') {
       return price.toFixed(2)
     }
-    
+
     // If it's a string, try to parse it
     if (typeof price === 'string') {
       const parsed = parseFloat(price)
       return isNaN(parsed) ? '0.00' : parsed.toFixed(2)
     }
-    
+
     // Fallback
     return '0.00'
   }
@@ -131,12 +131,11 @@ export default function ProductsPage() {
                       </td>
                       <td className="py-3 px-4">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            (stockMap[product.id as keyof typeof stockMap] || 0) <=
-                            (product.min_stock_level || 0)
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${(stockMap[product.id as keyof typeof stockMap] || 0) <=
+                              (product.min_stock_level || 0)
                               ? 'bg-destructive/10 text-destructive'
                               : 'bg-green-100 text-green-800'
-                          }`}
+                            }`}
                         >
                           {stockMap[product.id as keyof typeof stockMap] || 0} {product.unit || 'pcs'}
                         </span>
