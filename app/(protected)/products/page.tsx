@@ -4,19 +4,28 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { Plus, Edit2, Trash2 } from 'lucide-react'
-import { query } from '@/lib/db'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+type Product = {
+  id: string | number
+  name?: string
+  category_name?: string
+  min_stock_level?: number
+  default_purchase_price?: number | string
+  default_selling_price?: number | string
+  unit?: string
+  // add more fields if needed
+}
+
 export default function ProductsPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
-  const [products, setProducts] = useState([])
-  const [stockMap, setStockMap] = useState({})
+  const [user, setUser] = useState<{ role?: string } | null>(null)
+  const [products, setProducts] = useState<Product[]>([])
+  const [stockMap, setStockMap] = useState<Record<string | number, number>>({})
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Get user from localStorage
     const storedUser = localStorage.getItem('user')
     if (storedUser) {
       setUser(JSON.parse(storedUser))
@@ -26,54 +35,43 @@ export default function ProductsPage() {
   }, [router])
 
   useEffect(() => {
+    if (!user) return
+
     const fetchData = async () => {
       try {
-        // Fetch products
-        const productsRes = await fetch('/api/products')
-        const productsData = await productsRes.json()
-        setProducts(productsData)
+        const [productsRes, stockRes] = await Promise.all([
+          fetch('/api/products'),
+          fetch('/api/current-stock'),
+        ])
 
-        // Fetch stock data
-        const stockRes = await fetch('/api/current-stock')
+        const productsData = await productsRes.json()
         const stockData = await stockRes.json()
-        setStockMap(stockData)
+
+        setProducts(Array.isArray(productsData) ? productsData : [])
+        setStockMap(typeof stockData === 'object' && stockData !== null ? stockData : {})
       } catch (error) {
-        console.error('Error fetching data:', error)
+        console.error('Error fetching products/stock:', error)
       } finally {
         setLoading(false)
       }
     }
 
-    if (user) {
-      fetchData()
-    }
+    fetchData()
   }, [user])
 
-  // Map the role for display
-  const displayRole = user?.role === 'stock' ? 'Stock Controller' : user?.role
   const isStockController = user?.role === 'stock' || user?.role === 'stock_controller'
 
-  // Safe number formatting function
-  const formatPrice = (price: any): string => {
-    if (price === null || price === undefined) return '0.00'
+  const formatPrice = (price: number | string | null | undefined): string => {
+    if (price == null) return '0.00'
 
-    // If it's already a number
-    if (typeof price === 'number') {
-      return price.toFixed(2)
-    }
-
-    // If it's a string, try to parse it
-    if (typeof price === 'string') {
-      const parsed = parseFloat(price)
-      return isNaN(parsed) ? '0.00' : parsed.toFixed(2)
-    }
-
-    // Fallback
-    return '0.00'
+    const num = typeof price === 'string' ? parseFloat(price) : price
+    return Number.isNaN(num) ? '0.00' : num.toFixed(2)
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center h-screen">Loading...</div>
+    return (
+      <div className="flex items-center justify-center h-screen">Loading...</div>
+    )
   }
 
   return (
@@ -82,11 +80,9 @@ export default function ProductsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Products</h1>
-          <p className="text-muted-foreground">
-            Manage your product inventory
-          </p>
+          <p className="text-muted-foreground">Manage your product inventory</p>
         </div>
-        {/* Hide New Product button for stock controllers */}
+
         {!isStockController && (
           <Link href="/products/create">
             <Button>
@@ -103,7 +99,7 @@ export default function ProductsPage() {
           <CardTitle>Product List</CardTitle>
         </CardHeader>
         <CardContent>
-          {products && products.length > 0 ? (
+          {products.length > 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b">
@@ -123,57 +119,68 @@ export default function ProductsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {(products as any[]).map((product) => (
-                    <tr key={product.id} className="border-b hover:bg-muted">
-                      <td className="py-3 px-4">{product.name || '-'}</td>
-                      <td className="py-3 px-4">
-                        {product.category_name || '-'}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${(stockMap[product.id as keyof typeof stockMap] || 0) <=
-                              (product.min_stock_level || 0)
+                  {products.map((product) => {
+                    const currentStock = stockMap[product.id] ?? 0
+                    const isLowStock = currentStock <= (product.min_stock_level ?? 0)
+
+                    return (
+                      <tr
+                        key={product.id}
+                        className="border-b hover:bg-muted/50 transition-colors"
+                      >
+                        <td className="py-3 px-4">{product.name || '—'}</td>
+                        <td className="py-3 px-4">
+                          {product.category_name || '—'}
+                        </td>
+                        <td className="py-3 px-4">
+
+                          <span
+                            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${isLowStock
                               ? 'bg-destructive/10 text-destructive'
                               : 'bg-green-100 text-green-800'
-                            }`}
-                        >
-                          {stockMap[product.id as keyof typeof stockMap] || 0} {product.unit || 'pcs'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        ${formatPrice(product.default_purchase_price)}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        ${formatPrice(product.default_selling_price)}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <div className="flex justify-center gap-2">
-                          {/* Only show Edit/Delete for non-stock controllers */}
-                          {!isStockController ? (
-                            <>
-                              <Link href={`/products/${product.id}/edit`}>
-                                <Button variant="outline" size="sm">
-                                  <Edit2 className="h-4 w-4" />
+                              }`}
+                          > {product.unit ?? 'pcs'}
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-4 text-right">
+                          ${formatPrice(product.default_purchase_price)}
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          ${formatPrice(product.default_selling_price)}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex justify-center gap-2">
+                            {isStockController ? (
+                              <span className="text-xs text-muted-foreground px-2">
+                                View Only
+                              </span>
+                            ) : (
+                              <>
+                                <Link href={`/products/${product.id}/edit`}>
+                                  <Button variant="outline" size="sm">
+                                    <Edit2 className="h-4 w-4" />
+                                  </Button>
+                                </Link>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
-                              </Link>
-                              <Button variant="outline" size="sm" className="text-destructive bg-transparent">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </>
-                          ) : (
-                            <span className="text-xs text-muted-foreground px-2">
-                              View Only
-                            </span>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
+            <div className="text-center py-12 text-muted-foreground">
               No products found. Create your first product!
             </div>
           )}
