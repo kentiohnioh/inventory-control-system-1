@@ -139,7 +139,8 @@ export default function ProductsPage() {
                               ? 'bg-destructive/10 text-destructive'
                               : 'bg-green-100 text-green-800'
                               }`}
-                          > {product.unit ?? 'pcs'}
+                          >
+                            {product.unit ?? 'pcs'}
                           </span>
                         </td>
 
