@@ -177,15 +177,19 @@ export default function ProductsPage() {
                           {product.category_name || '—'}
                         </td>
                         <td className="py-3 px-4">
-
-                          <span
-                            className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${isLowStock
-                              ? 'bg-destructive/10 text-destructive'
-                              : 'bg-green-100 text-green-800'
-                              }`}
-                          >
-                            {product.unit ?? 'pcs'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span
+                              className={`inline-flex px-2.5 py-1 rounded-full text-xs font-medium ${(stockMap[product.id] ?? 0) <= (product.min_stock_level ?? 0)
+                                  ? 'bg-destructive/10 text-destructive'
+                                  : 'bg-green-100 text-green-800'
+                                }`}
+                            >
+                              {stockMap[product.id] ?? 0}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {product.unit ?? 'pcs'}
+                            </span>
+                          </div>
                         </td>
 
                         <td className="py-3 px-4 text-right">
