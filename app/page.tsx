@@ -31,7 +31,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4 overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-800 p-4 overflow-hidden">
       <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/30 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-72 h-72 bg-purple-500/30 rounded-full blur-3xl animate-pulse"></div>
 
@@ -76,14 +76,14 @@ export default function LoginPage() {
           </Button>
         </form>
 
-        <div className="mt-6 p-3 bg-white/5 rounded text-center text-xs text-white/70">
+        {/* <div className="mt-6 p-3 bg-white/5 rounded text-center text-xs text-white/70">
           <p className="font-semibold mb-2">Test Credentials:</p>
           <p>admin@gmail.com</p>
           <p>manager@gmail.com</p>
           <p>stock@gmail.com</p>
           <p>viewer@gmail.com</p>
           <p className="mt-2 text-blue-200 font-semibold">Password: rupp2025</p>
-        </div>
+        </div> */}
       </div>
     </div>
   )
