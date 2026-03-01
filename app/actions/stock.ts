@@ -11,23 +11,40 @@ export async function recordStockIn(formData: {
   notes: string
 }) {
   try {
-    // Insert stock in record
-    const result = await query(
-      `INSERT INTO stock_in 
-       (product_id, supplier_id, quantity, purchase_price, expiry_date, notes, date, user_id)
-       VALUES ($1, $2, $3, $4, $5, $6, CURRENT_DATE, 'default-user')
-       RETURNING *`,
-      [
-        formData.productId,
-        formData.supplierId,
-        formData.quantity,
-        formData.purchasePrice,
-        formData.expiryDate || null,
-        formData.notes || null,
-      ]
-    )
+    // Start a transaction
+    await query('BEGIN')
 
-    return { success: true, data: result.rows[0] }
+    try {
+      // Insert stock in record into stock_movements (not stock_in)
+      const movementResult = await query(
+        `INSERT INTO stock_movements 
+         (product_id, supplier_id, quantity, purchase_price, expiry_date, notes, movement_type, date) 
+         VALUES ($1, $2, $3, $4, $5, $6, 'IN', CURRENT_DATE)
+         RETURNING *`,
+        [
+          formData.productId,
+          formData.supplierId,
+          formData.quantity,
+          formData.purchasePrice,
+          formData.expiryDate || null,
+          formData.notes || null,
+        ]
+      )
+
+      // Update product stock quantity
+      await query(
+        `UPDATE products 
+         SET stock_quantity = stock_quantity + $1 
+         WHERE id = $2`,
+        [formData.quantity, formData.productId]
+      )
+
+      await query('COMMIT')
+      return { success: true, data: movementResult.rows[0] }
+    } catch (error) {
+      await query('ROLLBACK')
+      throw error
+    }
   } catch (error) {
     console.error('[v0] Error recording stock in:', error)
     return {
@@ -44,22 +61,39 @@ export async function recordStockOut(formData: {
   notes: string
 }) {
   try {
-    // Insert stock out record
-    const result = await query(
-      `INSERT INTO stock_out 
-       (product_id, quantity, selling_price, reason, notes, date, user_id)
-       VALUES ($1, $2, $3, $4, $5, CURRENT_DATE, 'default-user')
-       RETURNING *`,
-      [
-        formData.productId,
-        formData.quantity,
-        formData.sellingPrice,
-        formData.reason,
-        formData.notes || null,
-      ]
-    )
+    // Start a transaction
+    await query('BEGIN')
 
-    return { success: true, data: result.rows[0] }
+    try {
+      // Insert stock out record into stock_movements
+      const movementResult = await query(
+        `INSERT INTO stock_movements 
+         (product_id, quantity, selling_price, reason, notes, movement_type, date) 
+         VALUES ($1, $2, $3, $4, $5, 'OUT', CURRENT_DATE)
+         RETURNING *`,
+        [
+          formData.productId,
+          formData.quantity,
+          formData.sellingPrice,
+          formData.reason,
+          formData.notes || null,
+        ]
+      )
+
+      // Update product stock quantity (subtract)
+      await query(
+        `UPDATE products 
+         SET stock_quantity = stock_quantity - $1 
+         WHERE id = $2`,
+        [formData.quantity, formData.productId]
+      )
+
+      await query('COMMIT')
+      return { success: true, data: movementResult.rows[0] }
+    } catch (error) {
+      await query('ROLLBACK')
+      throw error
+    }
   } catch (error) {
     console.error('[v0] Error recording stock out:', error)
     return {
