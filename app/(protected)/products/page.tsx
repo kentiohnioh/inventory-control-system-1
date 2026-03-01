@@ -1,3 +1,4 @@
+
 'use client'
 
 import { Button } from '@/components/ui/button'
@@ -66,6 +67,49 @@ export default function ProductsPage() {
 
     const num = typeof price === 'string' ? parseFloat(price) : price
     return Number.isNaN(num) ? '0.00' : num.toFixed(2)
+  }
+
+  const handleDelete = async (id: string | number) => {
+    if (!confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      console.log('Deleting product ID:', id)
+
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to delete product'
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorMessage
+        } catch {
+          errorMessage = `Error ${response.status}: ${response.statusText}`
+        }
+        throw new Error(errorMessage)
+      }
+
+      const result = await response.json()
+      console.log('Delete result:', result)
+
+      // Refresh products list
+      const productsRes = await fetch('/api/products')
+      const productsData = await productsRes.json()
+      setProducts(Array.isArray(productsData) ? productsData : [])
+
+      // Refresh stock data
+      const stockRes = await fetch('/api/current-stock')
+      const stockData = await stockRes.json()
+      setStockMap(typeof stockData === 'object' && stockData !== null ? stockData : {})
+
+      alert('Product deleted successfully!')
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      alert(error instanceof Error ? error.message : 'Failed to delete product. Please try again.')
+    }
   }
 
   if (loading) {
@@ -167,6 +211,7 @@ export default function ProductsPage() {
                                   variant="outline"
                                   size="sm"
                                   className="text-destructive hover:bg-destructive/10"
+                                  onClick={() => handleDelete(product.id)}
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
