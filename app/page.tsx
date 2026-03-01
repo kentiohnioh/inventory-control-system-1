@@ -75,7 +75,6 @@ export default function LoginPage() {
             {loading ? 'Signing in...' : 'Sign In'}
           </Button>
         </form>
-
         {/* <div className="mt-6 p-3 bg-white/5 rounded text-center text-xs text-white/70">
           <p className="font-semibold mb-2">Test Credentials:</p>
           <p>admin@gmail.com</p>
