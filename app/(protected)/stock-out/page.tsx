@@ -179,13 +179,15 @@ export default function StockOutPage() {
                     type="number"
                     step="0.01"
                     min="0"
-                    value={formData.sellingPrice}
-                    onChange={(e) =>
+                    placeholder="0.00"
+                    value={formData.sellingPrice === 0 ? '' : formData.sellingPrice}
+                    onChange={(e) => {
+                      const value = e.target.value === '' ? 0 : parseFloat(e.target.value)
                       setFormData({
                         ...formData,
-                        sellingPrice: parseFloat(e.target.value),
+                        sellingPrice: isNaN(value) ? 0 : Math.max(0, value),
                       })
-                    }
+                    }}
                     required
                     disabled={loading}
                   />
