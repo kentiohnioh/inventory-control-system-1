@@ -13,7 +13,6 @@ interface StockInForm {
   productId: string
   supplierId: string
   quantity: number
-  purchasePrice: number
   expiryDate: string
   notes: string
 }
@@ -30,7 +29,6 @@ export default function StockInPage() {
     productId: '',
     supplierId: '',
     quantity: 1,
-    purchasePrice: 0,
     expiryDate: '',
     notes: '',
   })
@@ -75,7 +73,6 @@ export default function StockInPage() {
           productId: '',
           supplierId: '',
           quantity: 1,
-          purchasePrice: 0,
           expiryDate: '',
           notes: '',
         })
@@ -175,26 +172,6 @@ export default function StockInPage() {
 
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Purchase Price *
-                  </label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.purchasePrice}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        purchasePrice: parseFloat(e.target.value),
-                      })
-                    }
-                    required
-                    disabled={loading}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">
                     Expiry Date
                   </label>
                   <Input
@@ -267,9 +244,6 @@ export default function StockInPage() {
                         <th className="text-right py-3 px-2 font-semibold">
                           Quantity
                         </th>
-                        <th className="text-right py-3 px-2 font-semibold">
-                          Price
-                        </th>
                         <th className="text-left py-3 px-2 font-semibold">
                           Date
                         </th>
@@ -286,9 +260,6 @@ export default function StockInPage() {
                           </td>
                           <td className="py-3 px-2 text-right">
                             {movement.quantity}
-                          </td>
-                          <td className="py-3 px-2 text-right">
-                            ${movement.purchase_price?.toFixed(2)}
                           </td>
                           <td className="py-3 px-2">
                             {new Date(movement.date).toLocaleDateString()}
