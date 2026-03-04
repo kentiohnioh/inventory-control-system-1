@@ -79,7 +79,7 @@ export default function CreateProductPage() {
               </label>
               <Input
                 type="text"
-                placeholder="e.g., Orange Juice"
+                placeholder="e.g., Apple Watch Series 6"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
@@ -166,13 +166,14 @@ export default function CreateProductPage() {
                   type="number"
                   step="0.01"
                   placeholder="0.00"
-                  value={formData.purchasePrice}
-                  onChange={(e) =>
+                  value={formData.purchasePrice === 0 ? '' : formData.purchasePrice}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 0 : parseFloat(e.target.value)
                     setFormData({
                       ...formData,
-                      purchasePrice: parseFloat(e.target.value),
+                      purchasePrice: isNaN(value) ? 0 : value,
                     })
-                  }
+                  }}
                   required
                   disabled={loading}
                 />
@@ -186,13 +187,14 @@ export default function CreateProductPage() {
                   type="number"
                   step="0.01"
                   placeholder="0.00"
-                  value={formData.sellingPrice}
-                  onChange={(e) =>
+                  value={formData.sellingPrice === 0 ? '' : formData.sellingPrice}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 0 : parseFloat(e.target.value)
                     setFormData({
                       ...formData,
-                      sellingPrice: parseFloat(e.target.value),
+                      sellingPrice: isNaN(value) ? 0 : value,
                     })
-                  }
+                  }}
                   required
                   disabled={loading}
                 />
@@ -206,13 +208,14 @@ export default function CreateProductPage() {
               <Input
                 type="number"
                 placeholder="10"
-                value={formData.minStockLevel}
-                onChange={(e) =>
+                value={formData.minStockLevel === 0 ? '' : formData.minStockLevel}
+                onChange={(e) => {
+                  const value = e.target.value === '' ? 0 : parseInt(e.target.value)
                   setFormData({
                     ...formData,
-                    minStockLevel: parseInt(e.target.value),
+                    minStockLevel: isNaN(value) ? 0 : value,
                   })
-                }
+                }}
                 disabled={loading}
               />
             </div>
